@@ -1,0 +1,33 @@
+br:
+  fcv:
+    r2dbc-poc:
+      data-source:
+        application-name: r2dbc-poc
+        host: ${DB_HOST:localhost}
+        port: 5432
+        database: r2dbc-poc
+        username: r2dbc-poc
+        password: r2dbc-poc
+
+logging:
+  level:
+    br.fcv.r2dbc_poc: DEBUG
+    org.springframework.data: DEBUG
+    io.r2dbc: DEBUG
+# Note: Consider using environment variable `LOG_DATEFORMAT_PATTERN=yyyy-MM-dd'T'HH:mm:ss'Z', Z` in order to have
+# UTC time in log files
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${br.fcv.r2dbc-poc.data-source.host}:${br.fcv.r2dbc-poc.data-source.port}/${br.fcv.r2dbc-poc.data-source.database}
+    username: ${br.fcv.r2dbc-poc.data-source.username}
+    password: ${br.fcv.r2dbc-poc.data-source.password}
+    driver-class: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

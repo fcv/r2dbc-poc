@@ -1,0 +1,10 @@
+version: '3'
+services:
+  postgres:
+    image: 'postgres:11.2'
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    environment:
+      POSTGRES_DB: r2dbc-poc
+      POSTGRES_USER: r2dbc-poc
+      POSTGRES_PASSWORD: r2dbc-poc
