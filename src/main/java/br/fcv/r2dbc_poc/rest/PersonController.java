@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+import java.util.Optional;
 import java.util.logging.Level;
 
 @Slf4j
@@ -20,9 +22,17 @@ public class PersonController {
     private final PersonRepository repository;
 
     @GetMapping
-    public Flux<Person> listAll() {
-        log.debug("listAll()");
-        Flux<Person> persons = repository.findAll()
+    public Flux<Person> listAll(@RequestParam("delay") final Optional<Duration> delay) {
+        log.debug("listAll(delay: {})", delay);
+
+        Flux<Person> persons = delay
+                .filter(d -> !d.isNegative())
+                .map(d -> {
+                    final int ds =  (int) d.getSeconds();
+                    log.debug("Querying `findAll` with a delay of {} seconds", ds);
+                    return repository.findAllWithDelay(ds);
+                })
+                .orElseGet(repository::findAll)
                 .map(p -> {
                     // silly transformation .. just to experimenting purposes
                     log.debug("Modifying Person instance #{}", p.getId());
