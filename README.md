@@ -72,7 +72,7 @@ And then listing:
 
 The application also supports HTTP2 protocol
 
-    $ curl --http2 -is http://localhost:8080/persons
+    $ curl --http2 -i http://localhost:8080/persons
     HTTP/1.1 101 Switching Protocols
     connection: upgrade
     upgrade: h2c
@@ -80,4 +80,20 @@ The application also supports HTTP2 protocol
     HTTP/2 200 
     content-type: application/json;charset=UTF-8
     
-    [{"id":5,"name":"Foo Bar#5","birthday":"1984-11-01"},{"id":4,"name":"John Doo#4","birthday":"1980-05-29"},{"id":6,"name":"John Doo#6","birthday":"1980-05-29"},{"id":7,"name":"John Doo#7","birthday":"1980-05-29"}]
+    [ {
+      "id" : 5,
+      "name" : "Foo Bar#5",
+      "birthday" : "1984-11-01"
+    }, {
+      "id" : 4,
+      "name" : "John Doo#4",
+      "birthday" : "1980-05-29"
+    }, {
+      "id" : 6,
+      "name" : "John Doo#6",
+      "birthday" : "1980-05-29"
+    }, {
+      "id" : 7,
+      "name" : "John Doo#7",
+      "birthday" : "1980-05-29"
+    } ]

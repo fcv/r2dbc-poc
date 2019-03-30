@@ -32,6 +32,9 @@ spring:
     driver-class: org.postgresql.Driver
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
+  jackson:
+    serialization:
+      indent_output: true
 
 management:
   endpoints:
