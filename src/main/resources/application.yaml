@@ -17,6 +17,13 @@ logging:
 # Note: Consider using environment variable `LOG_DATEFORMAT_PATTERN=yyyy-MM-dd'T'HH:mm:ss'Z', Z` in order to have
 # UTC time in log files
 
+server:
+  http2:
+    enabled: true
+  # used when testing Spring Boot's traditional (non-reactive) Web Framework
+  tomcat:
+    max-threads: 8
+
 spring:
   datasource:
     url: jdbc:postgresql://${br.fcv.r2dbc-poc.data-source.host}:${br.fcv.r2dbc-poc.data-source.port}/${br.fcv.r2dbc-poc.data-source.database}
