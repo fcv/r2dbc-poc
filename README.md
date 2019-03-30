@@ -49,4 +49,35 @@ And then listing:
         }
     ]
 
+### SSE ([Server Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) / streamed `application/stream+json`)
 
+
+    $ http -S :8080/greetings
+    HTTP/1.1 200 OK
+    Content-Type: application/stream+json;charset=UTF-8
+    transfer-encoding: chunked
+    
+    {
+        "at": "2019-03-30T10:45:27.129Z", 
+        "id": "bbd7e5fe-09b8-473a-9e80-1d5489cdafb5@reactor-http-epoll-8", 
+        "source": "reactor-http-epoll-8"
+    }
+    {
+        "at": "2019-03-30T10:45:28.131Z", 
+        "id": "bbd7e5fe-09b8-473a-9e80-1d5489cdafb5@reactor-http-epoll-8", 
+        "source": "parallel-2"
+    }
+
+### HTTP2 
+
+The application also supports HTTP2 protocol
+
+    $ curl --http2 -is http://localhost:8080/persons
+    HTTP/1.1 101 Switching Protocols
+    connection: upgrade
+    upgrade: h2c
+    
+    HTTP/2 200 
+    content-type: application/json;charset=UTF-8
+    
+    [{"id":5,"name":"Foo Bar#5","birthday":"1984-11-01"},{"id":4,"name":"John Doo#4","birthday":"1980-05-29"},{"id":6,"name":"John Doo#6","birthday":"1980-05-29"},{"id":7,"name":"John Doo#7","birthday":"1980-05-29"}]
