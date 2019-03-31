@@ -1,12 +1,13 @@
 package br.fcv.r2dbc_poc.repository;
 
 import br.fcv.r2dbc_poc.entity.Person;
-import org.springframework.data.r2dbc.repository.query.Query;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-import reactor.core.publisher.Flux;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 
-public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
+import java.util.List;
 
-    @Query("SELECT p.* from person as p, (select pg_sleep($1)) as delay")
-    Flux<Person> findAllWithDelay(final int delayInSeconds);
+public interface PersonRepository extends CrudRepository<Person, Long> {
+
+    @Query(value = "SELECT p.* from person as p, (select pg_sleep(?)) as delay", nativeQuery = true)
+    List<Person> findAllWithDelay(final int delayInSeconds);
 }
