@@ -97,3 +97,97 @@ The application also supports HTTP2 protocol
       "name" : "John Doo#7",
       "birthday" : "1980-05-29"
     } ]
+
+## Max Connections
+
+What if a lot of requests floods backend Database ? Well, it seems database will refuse the connection and application will fail.
+
+It can be simulated by creating a PostgreSQL instance with maximum amount of connections set to 11:
+
+ > docker run --name r2dbc-poc -p 5432:5432 -e POSTGRES_PASSWORD="r2dbc-poc" -e POSTGRES_USER="r2dbc-poc" -e POSTGRES_DB="r2dbc-poc" postgres:10 -N 11
+
+And then performing multiples requests with long delays, for example `GET /persons?delay=PT2M`. When application exceeds that amount an exceptions like the one bellow is immediately thrown:
+
+    2019-04-02T08:10:23.991Z ERROR 16125 --- [tor-tcp-epoll-2] a.w.r.e.AbstractErrorWebExceptionHandler : [3c9d2530] 500 Server Error for HTTP GET "/persons?delay=PT2M"
+    
+    org.springframework.dao.DataAccessResourceFailureException: executeMany; SQL [SELECT p.* from person as p, (select pg_sleep($1)) as delaysorry, too many clients already; nested exception is PostgresqlServerErrorException{code='53300', columnName='null', constraintName='null', dataTypeName='null', detail='null', file='proc.c', hint='null', internalPosition='null', internalQuery='null', line='344', message='sorry, too many clients already', position='null', routine='InitProcess', schemaName='null', severityLocalized='FATAL', severityNonLocalized='FATAL', tableName='null', where='null'} R2dbcException{errorCode=0, sqlState='53300'} io.r2dbc.postgresql.PostgresqlServerErrorException: sorry, too many clients already
+        at org.springframework.data.r2dbc.support.SqlErrorCodeR2dbcExceptionTranslator.doTranslate(SqlErrorCodeR2dbcExceptionTranslator.java:215) ~[spring-data-r2dbc-1.0.0.BUILD-SNAPSHOT.jar:1.0.0.BUILD-SNAPSHOT]
+        at org.springframework.data.r2dbc.support.AbstractFallbackR2dbcExceptionTranslator.translate(AbstractFallbackR2dbcExceptionTranslator.java:66) ~[spring-data-r2dbc-1.0.0.BUILD-SNAPSHOT.jar:1.0.0.BUILD-SNAPSHOT]
+        at org.springframework.data.r2dbc.function.DefaultDatabaseClient.translateException(DefaultDatabaseClient.java:218) ~[spring-data-r2dbc-1.0.0.BUILD-SNAPSHOT.jar:1.0.0.BUILD-SNAPSHOT]
+        at org.springframework.data.r2dbc.function.DefaultDatabaseClient.lambda$inConnectionMany$5(DefaultDatabaseClient.java:165) ~[spring-data-r2dbc-1.0.0.BUILD-SNAPSHOT.jar:1.0.0.BUILD-SNAPSHOT]
+        at reactor.core.publisher.Flux.lambda$onErrorMap$25(Flux.java:6205) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.Flux.lambda$onErrorResume$26(Flux.java:6258) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:88) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxUsingWhen$ResourceSubscriber.onError(FluxUsingWhen.java:221) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxMap$MapSubscriber.onError(FluxMap.java:126) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.MonoDelayUntil$DelayUntilCoordinator.onError(MonoDelayUntil.java:138) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxMap$MapSubscriber.onError(FluxMap.java:126) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.MonoDelayUntil$DelayUntilTrigger.onError(MonoDelayUntil.java:282) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxHandle$HandleSubscriber.onError(FluxHandle.java:197) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxHandle$HandleSubscriber.onNext(FluxHandle.java:119) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxHandle$HandleConditionalSubscriber.onNext(FluxHandle.java:320) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.MonoFlatMapMany$FlatMapManyInner.onNext(MonoFlatMapMany.java:238) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxWindowPredicate$WindowFlux.drainRegular(FluxWindowPredicate.java:636) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxWindowPredicate$WindowFlux.drain(FluxWindowPredicate.java:714) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxWindowPredicate$WindowFlux.onNext(FluxWindowPredicate.java:756) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxWindowPredicate$WindowPredicateMain.onNext(FluxWindowPredicate.java:248) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxHandle$HandleSubscriber.onNext(FluxHandle.java:113) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxHandle$HandleConditionalSubscriber.onNext(FluxHandle.java:320) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxHandle$HandleConditionalSubscriber.onNext(FluxHandle.java:320) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxHandle$HandleConditionalSubscriber.onNext(FluxHandle.java:320) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onNext(FluxPeekFuseable.java:826) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxConcatMap$ConcatMapImmediate.innerNext(FluxConcatMap.java:275) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:849) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxGenerate$GenerateSubscription.next(FluxGenerate.java:169) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at io.r2dbc.postgresql.message.backend.BackendMessageDecoder.lambda$decode$1(BackendMessageDecoder.java:106) ~[r2dbc-postgresql-1.0.0.M7.jar:na]
+        at reactor.core.publisher.FluxGenerate$GenerateSubscription.slowPath(FluxGenerate.java:262) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxGenerate$GenerateSubscription.request(FluxGenerate.java:204) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:1878) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:1752) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxGenerate.subscribe(FluxGenerate.java:83) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.Flux.subscribe(Flux.java:7777) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxConcatMap$ConcatMapImmediate.drain(FluxConcatMap.java:442) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxConcatMap$ConcatMapImmediate.onNext(FluxConcatMap.java:244) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxPeek$PeekSubscriber.onNext(FluxPeek.java:192) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:114) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        at reactor.netty.channel.FluxReceive.drainReceiver(FluxReceive.java:205) ~[reactor-netty-0.8.5.RELEASE.jar:0.8.5.RELEASE]
+        at reactor.netty.channel.FluxReceive.onInboundNext(FluxReceive.java:321) ~[reactor-netty-0.8.5.RELEASE.jar:0.8.5.RELEASE]
+        at reactor.netty.channel.ChannelOperations.onInboundNext(ChannelOperations.java:319) ~[reactor-netty-0.8.5.RELEASE.jar:0.8.5.RELEASE]
+        at reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelOperationsHandler.java:141) ~[reactor-netty-0.8.5.RELEASE.jar:0.8.5.RELEASE]
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:362) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:348) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:340) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.ChannelInboundHandlerAdapter.channelRead(ChannelInboundHandlerAdapter.java:86) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:362) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:348) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:340) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1408) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:362) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:348) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:930) ~[netty-transport-4.1.33.Final.jar:4.1.33.Final]
+        at io.netty.channel.epoll.AbstractEpollStreamChannel$EpollStreamUnsafe.epollInReady(AbstractEpollStreamChannel.java:799) ~[netty-transport-native-epoll-4.1.33.Final-linux-x86_64.jar:4.1.33.Final]
+        at io.netty.channel.epoll.EpollEventLoop.processReady(EpollEventLoop.java:427) ~[netty-transport-native-epoll-4.1.33.Final-linux-x86_64.jar:4.1.33.Final]
+        at io.netty.channel.epoll.EpollEventLoop.run(EpollEventLoop.java:328) ~[netty-transport-native-epoll-4.1.33.Final-linux-x86_64.jar:4.1.33.Final]
+        at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:905) ~[netty-common-4.1.33.Final.jar:4.1.33.Final]
+        at java.lang.Thread.run(Thread.java:748) ~[na:1.8.0_191]
+    Caused by: io.r2dbc.postgresql.PostgresqlServerErrorException: sorry, too many clients already
+        at io.r2dbc.postgresql.PostgresqlServerErrorException.toException(PostgresqlServerErrorException.java:370) ~[r2dbc-postgresql-1.0.0.M7.jar:na]
+        at io.r2dbc.postgresql.PostgresqlServerErrorException.handleErrorResponse(PostgresqlServerErrorException.java:351) ~[r2dbc-postgresql-1.0.0.M7.jar:na]
+        at reactor.core.publisher.FluxHandle$HandleSubscriber.onNext(FluxHandle.java:97) ~[reactor-core-3.2.6.RELEASE.jar:3.2.6.RELEASE]
+        ... 45 common frames omitted
+
+Leading to a `500 Internal Server Error` response:
+
+     $ http --timeout 1200 :8080/persons?delay=PT2M
+     HTTP/1.1 500 Internal Server Error
+     Content-Length: 806
+     Content-Type: application/json;charset=UTF-8
+     
+     {
+         "error": "Internal Server Error", 
+         "message": "executeMany; SQL [SELECT p.* from person as p, (select pg_sleep($1)) as delaysorry, too many clients already; nested exception is PostgresqlServerErrorException{code='53300', columnName='null', constraintName='null', dataTypeName='null', detail='null', file='proc.c', hint='null', internalPosition='null', internalQuery='null', line='344', message='sorry, too many clients already', position='null', routine='InitProcess', schemaName='null', severityLocalized='FATAL', severityNonLocalized='FATAL', tableName='null', where='null'} R2dbcException{errorCode=0, sqlState='53300'} io.r2dbc.postgresql.PostgresqlServerErrorException: sorry, too many clients already", 
+         "path": "/persons", 
+         "status": 500, 
+         "timestamp": "2019-04-02T08:10:23.986+0000"
+     }
+  

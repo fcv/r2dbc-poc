@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,7 +18,7 @@ import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON_VALUE;
 import static reactor.core.publisher.Flux.fromStream;
 
 @RestController
-public class EventStreamController {
+public class GreetingController {
 
     private static final Duration DEFAULT_DELAY = Duration.ofSeconds(1);
 
@@ -43,6 +44,17 @@ public class EventStreamController {
         }
 
         return delayedFlux;
+    }
+
+    @GetMapping("/greet")
+    public Mono<Greeting> greet(@RequestParam("name") final Optional<String> name) {
+        return Mono.just(name.filter(s -> !s.isEmpty()).orElse("World"))
+                .map(n -> String.format("Hello %s!", n))
+                .map(message -> Greeting.builder()
+                        .id(message)
+                        .at(Instant.now())
+                        .source(currentThread().getName())
+                        .build());
     }
 
 }
