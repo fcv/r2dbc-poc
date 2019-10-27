@@ -6,7 +6,7 @@
 
     <changeSet id="initial-database-setup" author="fabio.veronez">
         <createTable tableName="person">
-            <column name="id" type="SERIAL">
+            <column name="id" type="SERIAL" autoIncrement="true">
                 <constraints nullable="false" primaryKey="true" />
             </column>
             <column name="name" type="TEXT">
