@@ -56,6 +56,11 @@
 			<artifactId>r2dbc-postgresql</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.r2dbc</groupId>
+			<artifactId>r2dbc-pool</artifactId>
+		</dependency>
+
 		<!--
 			Note: `commons-dbcp2` connection pool library has been add for the sole purpose of enabling
 			Spring Boot's Liquibase auto configuration. It is not actually used by r2dbc.
