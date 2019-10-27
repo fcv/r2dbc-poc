@@ -25,6 +25,10 @@ server:
     max-threads: 8
 
 spring:
+  jmx:
+    # prevents annoying warning `javax.management.InstanceNotFoundException: org.apache.commons.dbcp2:name=dataSource,type=BasicDataSource`
+    # during shutdown
+    enabled: false
   datasource:
     url: jdbc:postgresql://${br.fcv.r2dbc-poc.data-source.host}:${br.fcv.r2dbc-poc.data-source.port}/${br.fcv.r2dbc-poc.data-source.database}
     username: ${br.fcv.r2dbc-poc.data-source.username}
@@ -36,7 +40,11 @@ spring:
     serialization:
       indent_output: true
 
+
 management:
+  endpoint:
+    shutdown:
+      enabled: true
   endpoints:
     web:
       exposure:
